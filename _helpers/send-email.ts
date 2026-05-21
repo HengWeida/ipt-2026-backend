@@ -119,12 +119,43 @@ async function sendWithResend({ to, subject, html, from }: any) {
     );
 }
 
+async function sendWithBrevo({ to, subject, html, from }: any) {
+    const apiKey = process.env.BREVO_API_KEY;
+    if (!apiKey) throw 'BREVO_API_KEY is required to send emails via Brevo';
+
+    const recipients = Array.isArray(to)
+        ? to.map((email: string) => ({ email }))
+        : [{ email: to }];
+
+    const payload = {
+        sender: { email: from || getEmailFrom() },
+        to: recipients,
+        subject,
+        htmlContent: html
+    };
+
+    await httpJsonRequest(
+        'https://api.brevo.com/v3/smtp/email',
+        'POST',
+        {
+            'api-key': apiKey,
+            'Content-Type': 'application/json'
+        },
+        payload
+    );
+}
+
 async function sendEmail({ to, subject, html, from }: any) {
     const hasResend = !!process.env.RESEND_API_KEY;
+    const hasBrevo = !!process.env.BREVO_API_KEY;
     const hasSmtp = !!process.env.SMTP_HOST || !!fileConfig.smtpOptions;
 
-    if (process.env.NODE_ENV === 'production' && !hasResend && !process.env.SMTP_HOST) {
-        throw 'Email is not configured. Set RESEND_API_KEY (recommended) or SMTP_* environment variables.';
+    if (process.env.NODE_ENV === 'production' && !hasResend && !hasBrevo && !process.env.SMTP_HOST) {
+        throw 'Email is not configured. Set BREVO_API_KEY, RESEND_API_KEY (recommended), or SMTP_* environment variables.';
+    }
+
+    if (hasBrevo) {
+        return await sendWithBrevo({ to, subject, html, from });
     }
 
     if (hasResend) {
