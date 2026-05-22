@@ -29,30 +29,19 @@ function getEmailFrom() {
 }
 
 function getSmtpOptions() {
-    const defaultTimeouts = {
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 10000
-    };
-
+    if (process.env.NODE_ENV === 'production' && !process.env.SMTP_HOST) {
+        throw 'SMTP_HOSTenvironment variable is required in prooduction to send emails';
+    }
     if (process.env.SMTP_HOST) {
         return {
             host: process.env.SMTP_HOST,
             port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587,
             secure: process.env.SMTP_SECURE === 'true',
-            auth: process.env.SMTP_USER
-                ? {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASS
-                }
-                : undefined,
-            ...defaultTimeouts
         };
     }
 
     if (!fileConfig.smtpOptions) throw 'SMTP configuration is missing';
     return {
-        ...defaultTimeouts,
         ...fileConfig.smtpOptions
     };
 }
