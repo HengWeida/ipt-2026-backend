@@ -23,7 +23,8 @@ function model(sequelize: any) {
 
     const options = {
         // disable default timestamp fields (createdAt and updatedAt)
-        timestamps: false
+        timestamps: false,
+        tableName: 'refreshTokens'
     };
 
     return sequelize.define('refreshToken', attributes, options);

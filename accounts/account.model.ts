@@ -26,15 +26,16 @@ function model(sequelize: any) {
 
     const options = {
         // disable default timestamp fields (createdAt and updatedAt)
-        timestamps: false, 
+        timestamps: false,
+        tableName: 'accounts',
         defaultScope: {
             // exclude password hash by default
             attributes: { exclude: ['passwordHash'] }
         },
         scopes: {
             // include hash with this scope
-            withHash: { attributes: {}, }
-        }        
+            attributes: {},
+        }
     };
 
     return sequelize.define('account', attributes, options);
